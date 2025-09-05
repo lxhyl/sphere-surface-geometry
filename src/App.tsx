@@ -1,4 +1,3 @@
-import React from 'react'
 import SphereGeometry from './components/SphereGeometry'
 import './App.css'
 
