@@ -280,6 +280,8 @@ export default function SphereGeometry() {
   const [angleInfo, setAngleInfo] = useState<AngleInfo[]>([]);
   const [planarAngleInfo, setPlanarAngleInfo] = useState<AngleInfo[]>([]);
   const [showPlanarProjection] = useState(true);
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
 
   // 将球面点投影到平面
   const projectToPlane = (sphericalPoint: THREE.Vector3): THREE.Vector3 => {
@@ -545,77 +547,103 @@ export default function SphereGeometry() {
         position: 'absolute',
         top: '20px',
         left: '20px',
-        width: '280px',
+        width: isLeftPanelCollapsed ? '60px' : '280px',
         maxHeight: 'calc(100vh - 40px)',
         overflowY: 'auto',
         background: 'rgba(255, 255, 255, 0.95)',
-        padding: '20px',
+        padding: isLeftPanelCollapsed ? '10px' : '20px',
         borderRadius: '12px',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
         fontFamily: 'Arial, sans-serif',
         backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)'
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        transition: 'all 0.3s ease'
       }}>
-        <h3 style={{ margin: '0 0 20px 0', color: '#2C3E50', fontSize: '18px', fontWeight: 'bold' }}>
-          球面几何学习
-        </h3>
-        
-        <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#34495E', fontWeight: '600' }}>
-            操作说明
-          </h4>
-          <div style={{ fontSize: '12px', color: '#7F8C8D', lineHeight: '1.5' }}>
-            • 点击球面放置标记点<br/>
-            • 标记点自动连接成测地线<br/>
-            • 形成封闭图形时显示角度<br/>
-            • 同时显示平面投影对比
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#34495E', fontWeight: '600' }}>
-            当前状态
-          </h4>
-          <div style={{ fontSize: '12px', color: '#7F8C8D', lineHeight: '1.5' }}>
-            标记点数: <span style={{ fontWeight: 'bold', color: '#2C3E50' }}>{markers.length}</span><br/>
-            {angleInfo.length > 0 && (
-              <>
-                球面内角和: <span style={{ fontWeight: 'bold', color: '#E74C3C' }}>{totalSphericalAngle.toFixed(1)}°</span><br/>
-                平面内角和: <span style={{ fontWeight: 'bold', color: '#3498DB' }}>{totalPlanarAngle.toFixed(1)}°</span><br/>
-                差值: <span style={{ fontWeight: 'bold', color: '#27AE60' }}>{angleDifference.toFixed(1)}°</span><br/>
-                几何类型: <span style={{ fontWeight: 'bold', color: '#8E44AD' }}>{markers.length === 3 ? '三角形' : `${markers.length}边形`}</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ margin: '0', color: '#2C3E50', fontSize: '18px', fontWeight: 'bold', display: isLeftPanelCollapsed ? 'none' : 'block' }}>
+            球面几何学习
+          </h3>
           <button
-            onClick={clearMarkers}
+            onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
             style={{
-              background: '#E74C3C',
-              color: 'white',
+              background: 'transparent',
               border: 'none',
-              padding: '10px 16px',
-              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '500',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+              fontSize: '16px',
+              color: '#2C3E50',
+              padding: '4px',
+              borderRadius: '4px',
+              minWidth: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            清除所有标记
+            {isLeftPanelCollapsed ? '▶' : '◀'}
           </button>
         </div>
+        
+        {!isLeftPanelCollapsed && (
+          <>
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#34495E', fontWeight: '600' }}>
+                操作说明
+              </h4>
+              <div style={{ fontSize: '12px', color: '#7F8C8D', lineHeight: '1.5' }}>
+                • 点击球面放置标记点<br/>
+                • 标记点自动连接成测地线<br/>
+                • 形成封闭图形时显示角度<br/>
+                • 同时显示平面投影对比
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#34495E', fontWeight: '600' }}>
+                当前状态
+              </h4>
+              <div style={{ fontSize: '12px', color: '#7F8C8D', lineHeight: '1.5' }}>
+                标记点数: <span style={{ fontWeight: 'bold', color: '#2C3E50' }}>{markers.length}</span><br/>
+                {angleInfo.length > 0 && (
+                  <>
+                    球面内角和: <span style={{ fontWeight: 'bold', color: '#E74C3C' }}>{totalSphericalAngle.toFixed(1)}°</span><br/>
+                    平面内角和: <span style={{ fontWeight: 'bold', color: '#3498DB' }}>{totalPlanarAngle.toFixed(1)}°</span><br/>
+                    差值: <span style={{ fontWeight: 'bold', color: '#27AE60' }}>{angleDifference.toFixed(1)}°</span><br/>
+                    几何类型: <span style={{ fontWeight: 'bold', color: '#8E44AD' }}>{markers.length === 3 ? '三角形' : `${markers.length}边形`}</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+              <button
+                onClick={clearMarkers}
+                style={{
+                  background: '#E74C3C',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                }}
+              >
+                清除所有标记
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* 右侧角度信息显示 */}
@@ -624,104 +652,130 @@ export default function SphereGeometry() {
           position: 'absolute',
           top: '20px',
           right: '20px',
-          width: '320px',
+          width: isRightPanelCollapsed ? '60px' : '320px',
           maxHeight: 'calc(100vh - 40px)',
           overflowY: 'auto',
           background: 'rgba(255, 255, 255, 0.95)',
-          padding: '20px',
+          padding: isRightPanelCollapsed ? '10px' : '20px',
           borderRadius: '12px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           fontFamily: 'Arial, sans-serif',
           backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          transition: 'all 0.3s ease'
         }}>
-          <h4 style={{ margin: '0 0 20px 0', color: '#2C3E50', fontSize: '16px', fontWeight: 'bold' }}>
-            几何对比分析
-          </h4>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h4 style={{ margin: '0', color: '#2C3E50', fontSize: '16px', fontWeight: 'bold', display: isRightPanelCollapsed ? 'none' : 'block' }}>
+              几何对比分析
+            </h4>
+            <button
+              onClick={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '16px',
+                color: '#2C3E50',
+                padding: '4px',
+                borderRadius: '4px',
+                minWidth: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {isRightPanelCollapsed ? '▶' : '◀'}
+            </button>
+          </div>
           
-          <div style={{ marginBottom: '20px' }}>
-            <h5 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#E74C3C', fontWeight: '600' }}>
-              球面几何角度
-            </h5>
-            <div style={{ marginBottom: '8px' }}>
-              {angleInfo.map((angle, index) => (
-                <div key={index} style={{ 
+          {!isRightPanelCollapsed && (
+            <>
+              <div style={{ marginBottom: '20px' }}>
+                <h5 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#E74C3C', fontWeight: '600' }}>
+                  球面几何角度
+                </h5>
+                <div style={{ marginBottom: '8px' }}>
+                  {angleInfo.map((angle, index) => (
+                    <div key={index} style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      margin: '4px 0',
+                      fontSize: '12px',
+                      color: '#7F8C8D'
+                    }}>
+                      <span>顶点 {index + 1}:</span>
+                      <span style={{ fontWeight: 'bold', color: '#E74C3C' }}>{angle.angle.toFixed(1)}°</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ 
+                  padding: '8px 12px', 
+                  backgroundColor: '#FDF2F2', 
+                  borderRadius: '6px',
+                  border: '1px solid #FECACA'
+                }}>
+                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#E74C3C' }}>
+                    球面内角和: {totalSphericalAngle.toFixed(1)}°
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <h5 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#3498DB', fontWeight: '600' }}>
+                  平面几何角度
+                </h5>
+                <div style={{ marginBottom: '8px' }}>
+                  {planarAngleInfo.map((angle, index) => (
+                    <div key={index} style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      margin: '4px 0',
+                      fontSize: '12px',
+                      color: '#7F8C8D'
+                    }}>
+                      <span>顶点 {index + 1}:</span>
+                      <span style={{ fontWeight: 'bold', color: '#3498DB' }}>{angle.angle.toFixed(1)}°</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ 
+                  padding: '8px 12px', 
+                  backgroundColor: '#EBF8FF', 
+                  borderRadius: '6px',
+                  border: '1px solid #BEE3F8'
+                }}>
+                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#3498DB' }}>
+                    平面内角和: {totalPlanarAngle.toFixed(1)}°
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ 
+                padding: '12px',
+                backgroundColor: angleDifference > 0 ? '#F0FDF4' : '#FFFBEB',
+                borderRadius: '8px',
+                border: `1px solid ${angleDifference > 0 ? '#BBF7D0' : '#FED7AA'}`
+              }}>
+                <div style={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
-                  margin: '4px 0',
-                  fontSize: '12px',
-                  color: '#7F8C8D'
+                  alignItems: 'center',
+                  marginBottom: '6px'
                 }}>
-                  <span>顶点 {index + 1}:</span>
-                  <span style={{ fontWeight: 'bold', color: '#E74C3C' }}>{angle.angle.toFixed(1)}°</span>
+                  <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#27AE60' }}>
+                    差值
+                  </span>
+                  <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#27AE60' }}>
+                    {angleDifference.toFixed(1)}°
+                  </span>
                 </div>
-              ))}
-            </div>
-            <div style={{ 
-              padding: '8px 12px', 
-              backgroundColor: '#FDF2F2', 
-              borderRadius: '6px',
-              border: '1px solid #FECACA'
-            }}>
-              <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#E74C3C' }}>
-                球面内角和: {totalSphericalAngle.toFixed(1)}°
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <h5 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#3498DB', fontWeight: '600' }}>
-              平面几何角度
-            </h5>
-            <div style={{ marginBottom: '8px' }}>
-              {planarAngleInfo.map((angle, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  margin: '4px 0',
-                  fontSize: '12px',
-                  color: '#7F8C8D'
-                }}>
-                  <span>顶点 {index + 1}:</span>
-                  <span style={{ fontWeight: 'bold', color: '#3498DB' }}>{angle.angle.toFixed(1)}°</span>
+                <div style={{ fontSize: '12px', color: '#7F8C8D', lineHeight: '1.4' }}>
+                  {angleDifference > 0 ? '球面几何内角和大于平面几何' : '球面几何内角和小于平面几何'}
                 </div>
-              ))}
-            </div>
-            <div style={{ 
-              padding: '8px 12px', 
-              backgroundColor: '#EBF8FF', 
-              borderRadius: '6px',
-              border: '1px solid #BEE3F8'
-            }}>
-              <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#3498DB' }}>
-                平面内角和: {totalPlanarAngle.toFixed(1)}°
               </div>
-            </div>
-          </div>
-
-          <div style={{ 
-            padding: '12px',
-            backgroundColor: angleDifference > 0 ? '#F0FDF4' : '#FFFBEB',
-            borderRadius: '8px',
-            border: `1px solid ${angleDifference > 0 ? '#BBF7D0' : '#FED7AA'}`
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '6px'
-            }}>
-              <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#27AE60' }}>
-                差值
-              </span>
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#27AE60' }}>
-                {angleDifference.toFixed(1)}°
-              </span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#7F8C8D', lineHeight: '1.4' }}>
-              {angleDifference > 0 ? '球面几何内角和大于平面几何' : '球面几何内角和小于平面几何'}
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>
