@@ -77,6 +77,71 @@ function InteractiveSphere({
         <meshStandardMaterial color="#4A90E2" wireframe={false} />
       </Sphere>
 
+      {/* 经纬线网格 - 赤道朝向用户 */}
+      <group>
+        {/* 经线 (子午线) - 从北极到南极的垂直线，绕Y轴旋转 */}
+        {Array.from({ length: 12 }, (_, i) => {
+          const longitude = (i * 2 * Math.PI) / 12; // 每30度一条经线
+          const points: THREE.Vector3[] = [];
+          
+          // 从北极到南极创建经线点，调整坐标系让赤道朝向用户
+          for (let lat = -Math.PI/2; lat <= Math.PI/2; lat += Math.PI/32) {
+            // 标准球面坐标
+            const x = Math.cos(lat) * Math.cos(longitude);
+            const y = Math.sin(lat); // Y轴是南北方向
+            const z = Math.cos(lat) * Math.sin(longitude);
+            points.push(new THREE.Vector3(x, y, z));
+          }
+          
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          return (
+            <primitive 
+              key={`meridian-${i}`}
+              object={new THREE.Line(
+                geometry, 
+                new THREE.LineBasicMaterial({ 
+                  color: '#E8F4FD', 
+                  transparent: true,
+                  opacity: 0.3,
+                  linewidth: 1
+                })
+              )} 
+            />
+          );
+        })}
+
+        {/* 纬线 (平行线) - 水平圆圈，绕Y轴旋转 */}
+        {Array.from({ length: 7 }, (_, i) => {
+          const latitude = -Math.PI/2 + (i + 1) * Math.PI/8; // 跳过极地，每22.5度一条纬线
+          const radius = Math.cos(latitude);
+          const y = Math.sin(latitude);
+          const points: THREE.Vector3[] = [];
+          
+          // 创建纬线圆圈，调整坐标系
+          for (let lon = 0; lon <= 2 * Math.PI; lon += Math.PI/32) {
+            const x = radius * Math.cos(lon);
+            const z = radius * Math.sin(lon);
+            points.push(new THREE.Vector3(x, y, z));
+          }
+          
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          return (
+            <primitive 
+              key={`parallel-${i}`}
+              object={new THREE.Line(
+                geometry, 
+                new THREE.LineBasicMaterial({ 
+                  color: '#E8F4FD', 
+                  transparent: true,
+                  opacity: 0.3,
+                  linewidth: 1
+                })
+              )} 
+            />
+          );
+        })}
+      </group>
+
       {/* 标记点 */}
       {markers.map((marker) => (
         <Sphere key={marker.id} args={[0.02, 8, 8]} position={marker.position}>
@@ -104,7 +169,13 @@ function InteractiveSphere({
           {line.points.map((point, index) => {
             if (index === 0) return null;
             const prevPoint = line.points[index - 1];
-            const geometry = new THREE.BufferGeometry().setFromPoints([prevPoint, point]);
+            
+            // 将测地线点稍微向外偏移，避免被球体遮挡
+            const offset = 1.01; // 向外偏移1%
+            const offsetPrevPoint = prevPoint.clone().multiplyScalar(offset);
+            const offsetPoint = point.clone().multiplyScalar(offset);
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints([offsetPrevPoint, offsetPoint]);
             return (
               <primitive 
                 key={`${line.id}-${index}`} 
@@ -208,7 +279,7 @@ export default function SphereGeometry() {
   const [geodesicLines, setGeodesicLines] = useState<GeodesicLine[]>([]);
   const [angleInfo, setAngleInfo] = useState<AngleInfo[]>([]);
   const [planarAngleInfo, setPlanarAngleInfo] = useState<AngleInfo[]>([]);
-  const [showPlanarProjection, setShowPlanarProjection] = useState(false);
+  const [showPlanarProjection] = useState(true);
 
   // 将球面点投影到平面
   const projectToPlane = (sphericalPoint: THREE.Vector3): THREE.Vector3 => {
@@ -497,7 +568,7 @@ export default function SphereGeometry() {
             • 点击球面放置标记点<br/>
             • 标记点自动连接成测地线<br/>
             • 形成封闭图形时显示角度<br/>
-            • 可切换显示平面投影对比
+            • 同时显示平面投影对比
           </div>
         </div>
 
@@ -519,32 +590,6 @@ export default function SphereGeometry() {
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
-          <button
-            onClick={() => setShowPlanarProjection(!showPlanarProjection)}
-            style={{
-              background: showPlanarProjection ? '#27AE60' : '#3498DB',
-              color: 'white',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '500',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-            }}
-          >
-            {showPlanarProjection ? '隐藏平面投影' : '显示平面投影'}
-          </button>
-          
           <button
             onClick={clearMarkers}
             style={{
